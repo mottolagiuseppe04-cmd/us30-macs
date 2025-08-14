@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>TradingView Widget</title>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <style>html,body,#tv_chart_container{height:100%;margin:0;padding:0}</style>
+  </head>
+  <body>
+    <div id="tv_chart_container"></div>
+    <script type="text/javascript">
+      new TradingView.widget({
+        autosize: true,
+        symbol: "TV:US30USD", // tradingview symbol for Dow Jones; may need adjustment by region
+        interval: "15",
+        container_id: "tv_chart_container",
+        datafeed: new Datafeeds.UDFCompatibleDatafeed("https://demo_feed.tradingview.com"),
+        library_path: "charting_library/",
+        studies_overrides: {},
+        overrides: {},
+        enabled_features: ["study_templates"],
+        disabled_features: ["use_localstorage_for_settings"]
+      });
+      // WARNING: The official widget may not expose MACD numeric values programmatically.
+      // The following is a *best-effort* approach: attempt to read MACD from DOM (fragile).
+      function tryNotify() {
+        try {
+          // This is a placeholder - depending on Widget internals this may not work.
+          var nodes = document.querySelectorAll('.tv-legend .value');
+          nodes.forEach(function(n){ 
+            var t = n.innerText || n.textContent;
+            if (t && t.includes('MACD')) {
+              var num = parseFloat(t.replace(/[^\d.-]/g,''));
+              if (!isNaN(num)) Android.sendMacd(num.toString());
+            }
+          });
+        } catch(e) {}
+      }
+      setInterval(tryNotify, 5000);
+    </script>
+  </body>
+</html>
